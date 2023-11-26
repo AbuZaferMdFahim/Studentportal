@@ -1,5 +1,5 @@
 from django import forms
-from . models import Notes, Homework
+from . models import *
 
 class NotesForm(forms.ModelForm):
     class Meta:
@@ -15,5 +15,10 @@ class HomeworkForm(forms.ModelForm):
         widgets = {'due': DateInput()}
         fields = ['subject','title', 'description', 'due', 'is_finished']
 
-class YoutubeForm(forms.Form):
+class DashboardForm(forms.Form):
     text = forms.CharField(max_length=100, label="Enter your Search : ")
+
+class TodoForm(forms.ModelForm):
+    class Meta:
+        model = Todo
+        fields = ['title','is_finished']

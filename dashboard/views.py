@@ -1,5 +1,6 @@
 from django.shortcuts import redirect, render
-from . models import Notes, Homework
+import requests
+from . models import *
 from . forms import *
 from django.contrib import messages 
 from django.views import generic
@@ -100,7 +101,7 @@ def delete_homework(request,pk=None):
 # Youtube
 def youtube(request):
     if request.method == "POST":
-        form = YoutubeForm(request.POST)
+        form = DashboardForm(request.POST)
         # Check if 'text' key is present in request.POST
         if 'text' in request.POST:
             text = request.POST['text']
@@ -126,6 +127,82 @@ def youtube(request):
             context = {'form': form, 'results': result_list}
             return render(request, 'dashboard/youtube.html', context)
     else:
-        form = YoutubeForm()
+        form = DashboardForm()
         context = {'form': form}
         return render(request, 'dashboard/youtube.html', context)
+    
+def todo(request):
+    if request.method== 'POST':
+        form = TodoForm(request.POST)
+        if form.is_valid():
+            try:
+                finished = request.POST['is_finished']
+                if finished == 'on':
+                    finished=True
+                else:
+                    finished=False
+            except:
+                finished=False
+            todo = Todo(
+                user=request.user,
+                title = request.POST['title'],
+                is_finished = finished
+            )
+            todo.save()
+            messages.success(request, f"Todo added from {request.user.username} successfully!")
+            return redirect('todo')
+    else:
+        form = TodoForm()
+    todo = Todo.objects.filter(user = request.user)
+    if len(todo) == 0:
+        todo_done=True
+    else:
+        todo_done=False 
+    context = {'todo':todo,'form':form, 'todo_done':todo_done}
+    return render(request,'dashboard/todo.html',context)
+
+def update_todo(request,pk=None):
+    todo = Todo.objects.get(id=pk)
+    if todo.is_finished==True:
+        todo.is_finished=False
+    else:
+        todo.is_finished=True
+    todo.save()
+    return redirect('todo')
+
+def delete_todo(request,pk=None):
+    Todo.objects.get(id=pk).delete()
+    return redirect('todo')
+
+def books(request):
+    if request.method == "POST":
+        form = DashboardForm(request.POST)
+        # Check if 'text' key is present in request.POST
+        if 'text' in request.POST:
+            text = request.POST['text']
+            url = "https://www.googleapis.com/books/v1/volumes?q="+text
+            r = requests.get(url)
+            answer = r.json()
+            result_list = []
+
+            for item in answer.get('items', []):
+                volume_info = item.get('volumeInfo', {})
+                result_dict = {
+                    'title': volume_info.get('title', ''),
+                    'subtitle': volume_info.get('subtitle', ''),
+                    'description': volume_info.get('description', ''),
+                    'count': volume_info.get('pageCount', ''),
+                    'categories': volume_info.get('categories', []),
+                    'rating': volume_info.get('pageRating', ''),
+                    'thumbnail': volume_info.get('imageLinks', {}).get('thumbnail', ''),
+                    'preview': volume_info.get('previewLink', ''),
+                }
+                result_list.append(result_dict)
+
+            context = {'form': form, 'results': result_list}
+            return render(request, 'dashboard/books.html', context)
+    else:
+        form = DashboardForm()
+        context = {'form': form}
+        return render(request, 'dashboard/books.html', context)
+
