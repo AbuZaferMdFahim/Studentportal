@@ -16,7 +16,7 @@ class HomeworkForm(forms.ModelForm):
         fields = ['subject','title', 'description', 'due', 'is_finished']
 
 class DashboardForm(forms.Form):
-    text = forms.CharField(max_length=100, label="Enter your Search : ")
+    text = forms.CharField(max_length=100, label="Enter your Search ")
 
 class TodoForm(forms.ModelForm):
     class Meta:
