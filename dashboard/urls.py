@@ -30,4 +30,8 @@ urlpatterns = [
     
     #wiki
     path('wiki',views.wiki,name='wiki'),
+
+    #conversion
+    path('conversion',views.conversion,name='conversion'),
+
 ]
